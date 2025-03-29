@@ -1,0 +1,9 @@
+[package]
+name = "SendMoods"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+egui = "0.31.1"
+eframe = "0.31.1"
+#clipboard-rs = "0.2.4"
