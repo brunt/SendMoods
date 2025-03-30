@@ -12,7 +12,6 @@ impl eframe::App for MyApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Instructions");
 
-            // Display instructions
             ui.label("Drag a single file into the window to generate a ticket. Copy and send the ticket to someone so they can receive the file.");
             ui.add_space(4.0);
             // Create a text input area to show the path to the dragged file
@@ -47,11 +46,12 @@ impl eframe::App for MyApp {
 
 fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
-        "File Sender",
+        "Send Moods",
         eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default().with_inner_size(egui::vec2(600.0, 400.0)),         // initial_window_size: Some(egui::vec2(400.0, 200.0)),
+            viewport: egui::ViewportBuilder::default().with_inner_size(egui::vec2(600.0, 400.0)),
+            renderer: eframe::Renderer::Wgpu, // Glow renderer doesn't work for me rn
             ..Default::default()
         },
-        Box::new(|_cc| Ok(Box::<MyApp>::new(MyApp::default()))),  // Wrap in a closure
+        Box::new(|_cc| Ok(Box::<MyApp>::new(MyApp::default()))),
     )
 }

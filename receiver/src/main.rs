@@ -1,16 +1,6 @@
-// fn main() {
-
-// look for blobs
-
-// are blobs always the same length?
-
-// when a blob is found, download it (to ~/Downloads)
-
-// when I receive something, put it in a folder named after who sent the msg
-
-use crate::parser::is_blob;
 
 mod parser;
+use crate::parser::get_blob;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,12 +13,10 @@ async fn main() -> anyhow::Result<()> {
         let msg = client.recv().await?;
         match msg.as_typed()? {
             tmi::Message::Privmsg(msg) => {
-                // look for blobs
-                let mut txt = msg.text();
-                if is_blob(&mut txt) {
-                    println!("🐻 detected");
+                if let Some(_blob) = get_blob(&mut msg.text()) {
+                    // TODO: make directory with msg.sender().name()
+                    // and download the same way `sendme receive` does
                 }
-                println!("{}: {}", msg.sender().name(), msg.text());
             }
             tmi::Message::Reconnect => {
                 client.reconnect().await?;
@@ -41,4 +29,3 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 }
-// }
