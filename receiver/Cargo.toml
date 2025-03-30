@@ -1,0 +1,12 @@
+[package]
+name = "receiver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+egui = "0.31.1"
+eframe = "0.31.1"
+tmi = "0.9.0"
+anyhow = "1.0.97"
+tokio = { version = "1.44.1", features = ["full"] }
+winnow = "0.7.4"
