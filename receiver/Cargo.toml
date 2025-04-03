@@ -11,3 +11,4 @@ tokio = { version = "1.44.1", features = ["full"] }
 winnow = "0.7.4"
 shared = {  package = "shared", path = "../shared" }
 iroh-blobs = { version = "0.34.0", features = ["net_protocol"]}
+dotenv = "0.15.0"
