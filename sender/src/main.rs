@@ -34,7 +34,6 @@ impl eframe::App for MyApp {
                 if !input_state.raw.dropped_files.is_empty() {
                     for dropped_file in &input_state.raw.dropped_files {
                         if let Some(path) = &dropped_file.path {
-                            dbg!(path);
                             self.file_path = Some(path.display().to_string().parse().unwrap());
                         }
                     }

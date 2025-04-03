@@ -1,7 +1,9 @@
 [workspace]
 members = [
-    "sender",
+#    "sender", # trying eframe/egui
     "receiver",
+    "shared",
+    "tauri-sender/sender/src-tauri" # trying tauri
 ]
 resolver = "2"
 
