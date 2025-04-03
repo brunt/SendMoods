@@ -4,13 +4,15 @@ use iroh_blobs::ticket::BlobTicket;
 use shared::receive;
 use std::fs;
 use std::str::FromStr;
+use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    const CHANNEL: &str = "#ubruntu";
+    dotenv().ok();
+    let channel = format!("#{}", std::env::var("CHANNEL_NAME").expect("missing CHANNEL_NAME env var"));
 
     let mut client = tmi::Client::anonymous().await?;
-    client.join(CHANNEL).await?;
+    client.join(&channel).await?;
 
     loop {
         let msg = client.recv().await?;
@@ -33,10 +35,11 @@ async fn main() -> anyhow::Result<()> {
                         println!("Received invalid blob: {:?}", blob);
                     }
                 }
+                println!("{}: {:?}", msg.sender().name(), msg.text());
             }
             tmi::Message::Reconnect => {
                 client.reconnect().await?;
-                client.join(CHANNEL).await?;
+                client.join(&channel).await?;
             }
             tmi::Message::Ping(ping) => {
                 client.pong(&ping).await?;
