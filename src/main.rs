@@ -1,11 +1,10 @@
+use fast_qr::QRBuilder;
 use fast_qr::convert::svg::SvgBuilder;
 use fast_qr::convert::{Builder, Shape};
-use fast_qr::{QRBuilder};
-use leptos::html::{Input};
+use leptos::html::Input;
 use leptos::mount::mount_to_body;
 use leptos::prelude::*;
 use leptos::{IntoView, component, logging, view};
-
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{DragEvent, Event, MouseEvent, SubmitEvent, js_sys};
 
@@ -48,6 +47,7 @@ pub fn App() -> impl IntoView {
 
     let on_drop = move |ev: DragEvent| {
         ev.prevent_default();
+
         let file = ev
             .data_transfer()
             .expect_throw("failed to get data transfer")
@@ -64,35 +64,31 @@ pub fn App() -> impl IntoView {
         let var = ev.target().unwrap();
         logging::log!("{}", var.to_string());
     };
+    let div_on_click = move |ev: MouseEvent| {
+        ev.prevent_default();
 
+        if let Some(input) = hidden_input.get() {
+            input.click();
+        }
+    };
+
+    let on_input_change = move |_event: Event| {
+        let fileList = hidden_input.get().expect_throw("input get").files();
+        let file = fileList
+            .expect_throw("files")
+            .item(0)
+            .expect_throw("getting file 0");
+        set_name.set(file.name());
+    };
     view! {
-        <div
-            id="drop-area"
-            on:drop=on_drop
-            on:dragover=on_dragover
-            on:click=move |_ev: MouseEvent| {
-                if let Some(input) = hidden_input.get() {
-                    input.click();
-                }
-            }
-        >
-            {move || {
-                let text = name.read().to_string();
-                if text.is_empty() { "Drag a file here".to_string() } else { text }
-            }}
-            <input
-                type="file"
-                node_ref=hidden_input
-                hidden
-                on:change=move |_event: Event| {
-                    let fileList = hidden_input.get().expect_throw("input get").files();
-                    let file = fileList
-                        .expect_throw("files")
-                        .item(0)
-                        .expect_throw("getting file 0");
-                    set_name.set(file.name());
-                }
-            />
+        <div>
+            <label id="drop-area" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
+                {move || {
+                    let text = name.read().to_string();
+                    if text.is_empty() { "Drag a file here".to_string() } else { text }
+                }}
+            </label>
+            <input type="file" node_ref=hidden_input hidden on:change=on_input_change />
         </div>
         <form on:submit=on_submit>
             <input type="submit" value="Generate Ticket" />

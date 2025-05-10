@@ -27,12 +27,13 @@
             pkgs.wasm-bindgen-cli
             pkgs.binaryen
             pkgs.leptosfmt
+            pkgs.tailwindcss
           ];
 
           RUSTFLAGS = "-C target-feature=+crt-static";
 
           shellHook = ''
-            trunk serve --proxy-backend=https://yew.rs/tutorial
+            trunk serve
            '';
         };
       });
