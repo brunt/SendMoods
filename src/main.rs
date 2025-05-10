@@ -17,17 +17,20 @@ fn main() {
 pub fn App() -> impl IntoView {
     let (name, set_name) = signal(String::new());
     let (qr, set_qr) = signal(String::new());
+    let (file_given, set_file_given) = signal(false);
+    let url = Memo::new(move |_| {
+        window()
+            .location()
+            .href()
+            .expect_throw("failed to get href")
+    });
 
     let hidden_input: NodeRef<Input> = NodeRef::new();
     let on_submit = move |ev: SubmitEvent| {
         ev.prevent_default();
 
         // generate a qr code with the value being the full url of this page
-        let url = window()
-            .location()
-            .href()
-            .expect_throw("failed to get href");
-        let full_url = format!("{}?ticket={}", url, name.get());
+        let full_url = format!("{}?ticket={}", url.get(), name.get());
         let qrcode = QRBuilder::new(full_url)
             .build()
             .expect_throw("failed to build QR");
@@ -79,20 +82,32 @@ pub fn App() -> impl IntoView {
             .item(0)
             .expect_throw("getting file 0");
         set_name.set(file.name());
+        set_file_given.set(true);
+    };
+
+    let reset_form = move |_ev: MouseEvent| {
+        set_name.set(String::new());
+        set_qr.set(String::new());
+        set_file_given.set(false);
+        window()
+            .history()
+            .expect_throw("failed to get history")
+            .push_state_with_url(&js_sys::Object::new(), "", Some(&url.get()))
+            .expect_throw("failed to set querystring");
     };
     view! {
         <div>
-            <label id="drop-area" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
+            <div id="drop-area" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
                 {move || {
                     let text = name.read().to_string();
                     if text.is_empty() { "Drag a file here".to_string() } else { text }
                 }}
-            </label>
+            </div>
             <input type="file" node_ref=hidden_input hidden on:change=on_input_change />
         </div>
         <form on:submit=on_submit>
-            <input type="submit" value="Generate Ticket" />
-            <input type="reset" />
+            <input type="submit" disabled=move || !file_given.get() value="Generate Ticket" />
+            <input on:click=reset_form type="reset" />
         </form>
         <div id="qr-code" inner_html=move || qr.get()></div>
     }
