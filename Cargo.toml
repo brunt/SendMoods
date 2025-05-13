@@ -10,7 +10,7 @@ resolver = "2"
 leptos = { version = "0.8", features = ["csr"] }
 console_error_panic_hook = "0.1.7"
 fast_qr = { version = "0.13.0", features = ["svg"] }
-web-sys = { version = "0.3.77", features = ["Window", "Document", "File", "FileList", "DataTransfer"] }
+web-sys = { version = "0.3.77", features = ["Window", "Document", "File", "FileList", "DataTransfer", "UrlSearchParams"] }
 #wasm-bindgen-futures = "0.4"
 wasm-bindgen = "0.2.100"
 

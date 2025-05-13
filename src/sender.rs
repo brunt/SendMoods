@@ -5,45 +5,30 @@ use leptos::html::Input;
 use leptos::prelude::*;
 use leptos::{IntoView, component, logging, view};
 use wasm_bindgen::UnwrapThrowExt;
-use web_sys::{DragEvent, Event, File, MouseEvent, SubmitEvent, js_sys};
+use web_sys::{DragEvent, Event, File, MouseEvent, SubmitEvent};
 
 #[component]
-pub fn Sender() -> impl IntoView {
+pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
     let (file_signal, set_file_signal) = signal_local::<Option<File>>(None);
     let (qr, set_qr) = signal(String::new());
     let (file_given, set_file_given) = signal(false);
-    let url = Memo::new(move |_| {
-        window()
-            .location()
-            .href()
-            .expect_throw("failed to get href")
-    });
+    let (blob, set_blob) = signal(String::new());
 
     let hidden_input: NodeRef<Input> = NodeRef::new();
     let on_submit = move |ev: SubmitEvent| {
         ev.prevent_default();
 
         // use iroh to generate a blob for the file(s) given
-        let blob = generate_blob(file_signal.get().unwrap());
-        // let blob = generate_blob(&name.get());
+        let b = generate_blob(file_signal.get().unwrap());
+        let full_url = format!("{}?ticket={}", url.get(), b);
+        set_blob.set(b);
 
         // generate a qr code with the value being the full url of this page
-        let full_url = format!("{}?ticket={}", url.get(), blob);
         let qrcode = QRBuilder::new(full_url)
             .build()
             .expect_throw("failed to build QR");
         let svgqr = SvgBuilder::default().shape(Shape::Square).to_str(&qrcode);
         set_qr.set(svgqr);
-
-        window()
-            .history()
-            .expect_throw("failed to get history")
-            .push_state_with_url(
-                &js_sys::Object::new(),
-                "",
-                Some(&format!("?ticket={}", blob)),
-            )
-            .expect_throw("failed to set querystring");
     };
 
     let on_drop = move |ev: DragEvent| {
@@ -86,11 +71,7 @@ pub fn Sender() -> impl IntoView {
         set_file_signal.set(None);
         set_qr.set(String::new());
         set_file_given.set(false);
-        window()
-            .history()
-            .expect_throw("failed to get history")
-            .push_state_with_url(&js_sys::Object::new(), "", Some(&url.get()))
-            .expect_throw("failed to set querystring");
+        set_blob.set(String::new());
     };
     view! {
         <div>
@@ -106,6 +87,9 @@ pub fn Sender() -> impl IntoView {
             <input on:click=reset_form type="reset" />
         </form>
         <div id="qr-code" inner_html=move || qr.get()></div>
+        <label hidden=move || {
+            blob.get().is_empty()
+        }>{move || format!("{}?ticket={}", url.get(), blob.get())}</label>
     }
 }
 
