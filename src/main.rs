@@ -34,12 +34,12 @@ pub fn App() -> impl IntoView {
         let search = search.trim_start_matches('?');
         let params =
             UrlSearchParams::new_with_str(search).expect_throw("failed to create UrlSearchParams");
-        !params.has("ticket") //TODO: this negation makes the intended effect work but I don't yet see why
+        params.has("ticket")
     };
 
     view! {
-        <Show when=has_ticket fallback=move || view! { <Receiver /> }>
-            <Sender url=url />
+        <Show when=has_ticket fallback=move || view! { <Sender url=url /> }>
+            <Receiver />
         </Show>
     }
 }

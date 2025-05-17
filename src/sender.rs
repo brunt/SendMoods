@@ -74,27 +74,32 @@ pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
         set_blob.set(String::new());
     };
     view! {
-        <div>
-            <div id="drop-area" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
+        <div class="w-96 mb-6 flex flex-col items-center">
+            <div id="drop-area" class="w-96 border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors duration-200 bg-gray-800 hover:border-blue-400 hover:bg-gray-700 w-full max-w-md select-none mb-4" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
                 {move || {
                     file_signal.get().map_or("Drag a file here".to_string(), |file| file.name())
                 }}
             </div>
             <input type="file" node_ref=hidden_input hidden on:change=on_input_change />
         </div>
-        <form on:submit=on_submit>
-            <input type="submit" disabled=move || !file_given.get() value="Generate Ticket" />
-            <input on:click=reset_form type="reset" />
+        <form class="flex gap-4 mb-6" on:submit=on_submit>
+            <input type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200" disabled=move || !file_given.get() value="Generate Ticket" />
+            <input class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded transition-colors duration-200" on:click=reset_form type="reset" />
         </form>
-        <div id="qr-code" inner_html=move || qr.get()></div>
-        <label hidden=move || {
+        <div id="qr-code" class="mb-4 w-72 h-72" inner_html=move || qr.get()></div>
+
+        <div class="border-2 border-green-200 bg-green-800 px-2 py-1" hidden=move || {
             blob.get().is_empty()
-        }>{move || format!("{}?ticket={}", url.get(), blob.get())}</label>
+        }>
+        <p class="mb-4">Open this link or scan the QR code to download the file.</p>
+        <p class="break-words rounded select-all font-mono select-all bg-emerald-950 w-96 px-2 py-3">{move || format!("{}?ticket={}", url.get(), blob.get())}</p>
+        </div>
+
     }
 }
 
 // generate an iroh blob from a file
 fn generate_blob(input: File) -> String {
     logging::log!("generate blob {:?}", input);
-    "blob123abcdef000000000000000000000000000000000000000000000000".into()
+    "blobad5xtaebcfbmxlakzuiwir27ojqd2omgjzahiytdnn3vstjyv3dscajdnb2hi4dthixs65ltmuys2mjoojswyylzfzuxe33ifzxgk5dxn5zgwlrpaiabovgwxwti2aqaycuabmngrubadppxgaagh4h5ovh43mw73qeg2nilggsxitjlo6d4gmign5ieenxl".into()
 }
