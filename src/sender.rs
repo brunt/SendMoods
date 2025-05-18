@@ -8,11 +8,19 @@ use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{DragEvent, Event, File, MouseEvent, SubmitEvent};
 
 #[component]
-pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
+pub fn Sender() -> impl IntoView {
+    // TODO: do I need all these signals?
     let (file_signal, set_file_signal) = signal_local::<Option<File>>(None);
     let (qr, set_qr) = signal(String::new());
     let (file_given, set_file_given) = signal(false);
     let (blob, set_blob) = signal(String::new());
+
+    let url = Memo::new(move |_| {
+        window()
+            .location()
+            .href()
+            .expect_throw("failed to get href")
+    });
 
     let hidden_input: NodeRef<Input> = NodeRef::new();
     let on_submit = move |ev: SubmitEvent| {
@@ -20,7 +28,7 @@ pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
 
         // use iroh to generate a blob for the file(s) given
         let b = generate_blob(file_signal.get().unwrap());
-        let full_url = format!("{}?ticket={}", url.get(), b);
+        let full_url = format!("{}?ticket={}", url.read(), b);
         set_blob.set(b);
 
         // generate a qr code with the value being the full url of this page
@@ -75,7 +83,13 @@ pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
     };
     view! {
         <div class="w-96 mb-6 flex flex-col items-center">
-            <div id="drop-area" class="w-96 border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors duration-200 bg-gray-800 hover:border-blue-400 hover:bg-gray-700 w-full max-w-md select-none mb-4" on:drop=on_drop on:dragover=on_dragover on:click=div_on_click>
+            <div
+                id="drop-area"
+                class="w-96 border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors duration-200 bg-gray-800 hover:border-blue-400 hover:bg-gray-700 w-full max-w-md select-none mb-4"
+                on:drop=on_drop
+                on:dragover=on_dragover
+                on:click=div_on_click
+            >
                 {move || {
                     file_signal.get().map_or("Drag a file here".to_string(), |file| file.name())
                 }}
@@ -83,18 +97,29 @@ pub fn Sender(#[prop(into)] url: Memo<String>) -> impl IntoView {
             <input type="file" node_ref=hidden_input hidden on:change=on_input_change />
         </div>
         <form class="flex gap-4 mb-6" on:submit=on_submit>
-            <input type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200" disabled=move || !file_given.get() value="Generate Ticket" />
-            <input class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded transition-colors duration-200" on:click=reset_form type="reset" />
+            <input
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200"
+                disabled=move || !file_given.get()
+                value="Generate Ticket"
+            />
+            <input
+                class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded transition-colors duration-200"
+                on:click=reset_form
+                type="reset"
+            />
         </form>
         <div id="qr-code" class="mb-4 w-72 h-72" inner_html=move || qr.get()></div>
 
-        <div class="border-2 border-green-200 bg-green-800 px-2 py-1" hidden=move || {
-            blob.get().is_empty()
-        }>
-        <p class="mb-4">Open this link or scan the QR code to download the file.</p>
-        <p class="break-words rounded select-all font-mono select-all bg-emerald-950 w-96 px-2 py-3">{move || format!("{}?ticket={}", url.get(), blob.get())}</p>
+        <div
+            class="border-2 border-green-200 bg-green-800 px-2 py-1"
+            hidden=move || { blob.get().is_empty() }
+        >
+            <p class="mx-auto w-fit mb-4">Open this link or scan the QR code to download the file.</p>
+            <p class="mx-auto text-center break-words rounded select-all font-mono select-all bg-emerald-950 w-96 px-2 py-3">
+                {move || format!("{}?ticket={}", url.get(), blob.get())}
+            </p>
         </div>
-
     }
 }
 

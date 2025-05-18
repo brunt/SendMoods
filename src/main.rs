@@ -6,10 +6,10 @@ use crate::sender::Sender;
 
 use leptos::control_flow::Show;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{Memo, window};
+use leptos::prelude::Read;
 use leptos::{IntoView, component, view};
-use wasm_bindgen::UnwrapThrowExt;
-use web_sys::UrlSearchParams;
+use leptos_router::components::{Router};
+use leptos_router::hooks::use_query_map;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -18,28 +18,21 @@ fn main() {
 
 #[component]
 pub fn App() -> impl IntoView {
-    let url = Memo::new(move |_| {
-        window()
-            .location()
-            .href()
-            .expect_throw("failed to get href")
-    });
+    view! {
+        <Router>
+            <AppButInsideRouter />
+        </Router>
+    }
+}
 
-    // show the receiver component when there's a ticket in the querystring, otherwise show sender component
-    let has_ticket = move || {
-        let search = window()
-            .location()
-            .search()
-            .expect("should have a search string");
-        let search = search.trim_start_matches('?');
-        let params =
-            UrlSearchParams::new_with_str(search).expect_throw("failed to create UrlSearchParams");
-        params.has("ticket")
-    };
+#[component]
+pub fn AppButInsideRouter() -> impl IntoView {
+    let query = use_query_map();
+    let ticket = move || query.read().get("ticket");
 
     view! {
-        <Show when=has_ticket fallback=move || view! { <Sender url=url /> }>
-            <Receiver />
+        <Show when=move || ticket().is_some() fallback=move || view! { <Sender /> }>
+            <Receiver ticket=ticket() />
         </Show>
     }
 }
