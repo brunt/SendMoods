@@ -1,12 +1,13 @@
 use leptos::prelude::*;
 use leptos::prelude::{ElementChild, OnAttribute};
 use leptos::{IntoView, component, logging, view};
-use web_sys::MouseEvent;
+use web_sys::{MouseEvent, SubmitEvent};
 
 #[component]
 pub fn Receiver(#[prop(into)] ticket: Option<String>) -> impl IntoView {
     let (text_area, set_text_area) = signal(ticket.unwrap_or_default());
-    let submit_form = move |_| {
+    let submit_form = move |e: SubmitEvent| {
+        e.prevent_default();
         logging::log!("submitted form");
         // TODO: when iroh has wasm support, we download a blob
     };
@@ -17,7 +18,7 @@ pub fn Receiver(#[prop(into)] ticket: Option<String>) -> impl IntoView {
 
     //TODO: <A/> component that links to sender
     view! {
-        <textarea class="w-96 y-6 m-6 truncate hover:text-clip text-slate-800 break-words overflow-auto rounded">
+        <textarea class="w-96 m-6 truncate hover:text-clip text-slate-800 break-words overflow-auto rounded">
             {move || text_area.get()}
         </textarea>
         <p class="mb-6">You are downloading <b class="text-blue-500">Thinking.epub</b>.</p>

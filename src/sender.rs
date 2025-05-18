@@ -9,10 +9,8 @@ use web_sys::{DragEvent, Event, File, MouseEvent, SubmitEvent};
 
 #[component]
 pub fn Sender() -> impl IntoView {
-    // TODO: do I need all these signals?
     let (file_signal, set_file_signal) = signal_local::<Option<File>>(None);
     let (qr, set_qr) = signal(String::new());
-    let (file_given, set_file_given) = signal(false);
     let (blob, set_blob) = signal(String::new());
 
     let url = Memo::new(move |_| {
@@ -72,13 +70,11 @@ pub fn Sender() -> impl IntoView {
             .item(0)
             .expect_throw("getting file 0");
         set_file_signal.set(Some(file));
-        set_file_given.set(true);
     };
 
     let reset_form = move |_ev: MouseEvent| {
         set_file_signal.set(None);
         set_qr.set(String::new());
-        set_file_given.set(false);
         set_blob.set(String::new());
     };
     view! {
@@ -100,7 +96,7 @@ pub fn Sender() -> impl IntoView {
             <input
                 type="submit"
                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200"
-                disabled=move || !file_given.get()
+                disabled=move || !file_signal.read().is_some()
                 value="Generate Ticket"
             />
             <input
@@ -113,11 +109,11 @@ pub fn Sender() -> impl IntoView {
 
         <div
             class="border-2 border-green-200 bg-green-800 px-2 py-1"
-            hidden=move || { blob.get().is_empty() }
+            hidden=move || { blob.read().is_empty() }
         >
             <p class="mx-auto w-fit mb-4">Open this link or scan the QR code to download the file.</p>
             <p class="mx-auto text-center break-words rounded select-all font-mono select-all bg-emerald-950 w-96 px-2 py-3">
-                {move || format!("{}?ticket={}", url.get(), blob.get())}
+                {move || format!("{}?ticket={}", url.get(), blob.read())}
             </p>
         </div>
     }
